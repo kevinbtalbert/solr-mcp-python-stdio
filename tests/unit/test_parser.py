@@ -76,6 +76,14 @@ class TestQueryParser:
         assert collection == "collection1"
         assert "*" in fields
 
+    def test_parse_select_with_limit(self, query_parser):
+        """Test parsing SELECT with LIMIT (sqlglot stores FROM as from_)."""
+        query = "SELECT * FROM logistics LIMIT 1"
+        ast, collection, fields = query_parser.parse_select(query)
+
+        assert collection == "logistics"
+        assert "*" in fields
+
     def test_parse_select_invalid_syntax(self, query_parser):
         """Test parsing query with invalid syntax."""
         query = "INVALID SQL"

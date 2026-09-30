@@ -70,8 +70,8 @@ class QueryParser:
             if not ast.expressions:
                 raise QueryError("SELECT clause must specify at least one field")
 
-            # Get collection from FROM clause
-            from_expr = ast.args.get("from")
+            # Get collection from FROM clause (sqlglot 26+ uses "from_" in args)
+            from_expr = ast.args.get("from") or ast.args.get("from_")
             if not from_expr:
                 raise QueryError("FROM clause is required")
 
