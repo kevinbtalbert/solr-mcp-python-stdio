@@ -49,6 +49,7 @@ path = "solr_mcp/__init__.py"
 packages = ["solr_mcp"]
 
 [tool.pytest.ini_options]
+testpaths = ["tests"]
 asyncio_mode = "strict"
 asyncio_default_fixture_loop_scope = "function"
 markers = [

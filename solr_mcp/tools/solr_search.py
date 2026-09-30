@@ -19,9 +19,7 @@ def _remediation_hint(message: str) -> str:
             "field names."
         )
     if "collection not found" in lower or "404" in lower:
-        return (
-            f"{message} Use list-collections to see available collection names."
-        )
+        return f"{message} Use list-collections to see available collection names."
     return message
 
 

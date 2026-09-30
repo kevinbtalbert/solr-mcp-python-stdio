@@ -270,20 +270,17 @@ class QueryBuilder:
             # Parse and validate base query
             ast, collection, fields, sort_fields = self.parse_and_validate(base_query)
 
-            # Add document ID filter
+            params = self.build_solr_query(ast)
+
             if doc_ids:
                 id_filter = f"_docid_:({' OR '.join(doc_ids)})"
-                if ast.args.get("where"):
-                    ast.args["where"] = exp.Binary(
-                        this=ast.args["where"],
-                        expression=exp.Identifier(this=id_filter),
-                        op="AND",
-                    )
+                existing_fq = params.get("fq")
+                if existing_fq:
+                    params["fq"] = f"({existing_fq}) AND ({id_filter})"
                 else:
-                    ast.args["where"] = exp.Identifier(this=id_filter)
+                    params["fq"] = id_filter
 
-            # Build Solr query
-            return self.build_solr_query(ast)
+            return params
 
         except QueryError as e:
             raise e

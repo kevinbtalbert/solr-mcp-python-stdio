@@ -24,9 +24,7 @@ async def get_collection_schema(collection: str) -> Dict[str, Any]:
     except SchemaError as exc:
         hint = str(exc)
         if "not found" in hint.lower():
-            hint = (
-                f"{hint} Use list-collections to see available collection names."
-            )
+            hint = f"{hint} Use list-collections to see available collection names."
         raise SchemaError(hint) from exc
     except Exception as exc:
         raise SolrError(f"Failed to get schema: {exc}") from exc

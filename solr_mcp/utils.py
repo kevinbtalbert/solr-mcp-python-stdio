@@ -55,7 +55,7 @@ class SolrUtils:
 
     @staticmethod
     def sanitize_filters(
-        filters: Optional[Union[str, List[str], Dict[str, Any]]]
+        filters: Optional[Union[str, List[str], Dict[str, Any]]],
     ) -> Optional[List[str]]:
         """Sanitize and normalize filter queries.
 
@@ -148,7 +148,7 @@ class SolrUtils:
 
     @staticmethod
     def sanitize_fields(
-        fields: Optional[Union[str, List[str], Dict[str, Any]]]
+        fields: Optional[Union[str, List[str], Dict[str, Any]]],
     ) -> Optional[List[str]]:
         """Sanitize and normalize field list.
 

@@ -4,9 +4,9 @@ from unittest.mock import AsyncMock
 
 import pytest
 
+from solr_mcp.solr.exceptions import SolrError
 from solr_mcp.tools import _context
 from solr_mcp.tools.solr_list_collections import list_collections
-from solr_mcp.solr.exceptions import SolrError
 
 
 @pytest.fixture(autouse=True)

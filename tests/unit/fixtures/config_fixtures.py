@@ -21,7 +21,7 @@ def mock_config(request):
     base_url = getattr(request, "param", {}).get(
         "base_url", "http://localhost:8983/solr"
     )
-    zk_hosts = getattr(request, "param", {}).get("zk_hosts", ["localhost:2181"])
+    zk_hosts = getattr(request, "param", {}).get("zk_hosts", [])
     timeout = getattr(request, "param", {}).get("timeout", 10)
 
     config = Mock(spec=SolrConfig)

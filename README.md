@@ -78,9 +78,22 @@ The server speaks MCP over **stdio** by default. Install and run it from Git wit
 }
 ```
 
-Use this block in Cursor MCP settings or Claude Desktop `claude_desktop_config.json`.
+Use this block in Cursor MCP settings, Claude Desktop, or Agent Studio MCP configuration.
 
 Set **`SOLR_BASE_URL`** to your Solr Admin base URL (including the `/solr` path). The server uses plain HTTP/HTTPS with no login or API keys—suitable for open Solr endpoints. ZooKeeper is **not** required: when `ZOOKEEPER_HOSTS` is unset, collections are discovered through Solr’s HTTP API. For local SolrCloud with ZK directly reachable, optionally set `ZOOKEEPER_HOSTS` to a comma-separated list (e.g. `localhost:2181`).
+
+### MCP tools (Agent Studio / Claude)
+
+| Tool | Use for |
+|------|---------|
+| `list-collections` | Discover collection names |
+| `get-schema` | Field names and types before querying |
+| `search` | **Primary** — Lucene `/select` (full text, filters, facets, sort) |
+| `sql-select` | Solr SQL when you need it explicitly |
+| `semantic-select` / `vector-select` | SQL + vector similarity (requires embeddings setup) |
+| `get-default-text-vectorizer` | Embedding model dimensions for semantic search |
+
+After changing this repo, refresh the MCP server (restart the host or bump the git ref) so clients pick up new tool names. No `mcp` or ZooKeeper parameters are required in tool calls.
 
 ### Local checkout
 

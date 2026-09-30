@@ -4,9 +4,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from solr_mcp.solr.exceptions import SchemaError, SolrError
 from solr_mcp.tools import _context
 from solr_mcp.tools.solr_get_schema import get_collection_schema
-from solr_mcp.solr.exceptions import SchemaError, SolrError
 
 
 @pytest.fixture(autouse=True)

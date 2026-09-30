@@ -74,11 +74,7 @@ def get_schema(func: Callable) -> ToolSchema:
     description = "\n".join(description_lines).strip()
 
     sig = inspect.signature(func)
-    params = {
-        k: v
-        for k, v in sig.parameters.items()
-        if k not in _SKIP_SCHEMA_PARAMS
-    }
+    params = {k: v for k, v in sig.parameters.items() if k not in _SKIP_SCHEMA_PARAMS}
 
     properties = {}
     required = []

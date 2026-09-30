@@ -18,6 +18,7 @@ from starlette.routing import Mount, Route
 from solr_mcp.solr.client import SolrClient
 from solr_mcp.solr.config import SolrConfig
 from solr_mcp.tools import TOOLS_DEFINITION
+from solr_mcp.tools._context import set_solr_client
 
 load_dotenv()
 
@@ -90,6 +91,7 @@ class SolrMCPServer:
     def _connect_to_solr(self):
         """Initialize Solr client connection."""
         self.solr_client = SolrClient(config=self.config)
+        set_solr_client(self.solr_client)
 
     def _transform_tool_params(self, tool_name: str, params: dict) -> dict:
         """Transform tool parameters before they are passed to the tool."""

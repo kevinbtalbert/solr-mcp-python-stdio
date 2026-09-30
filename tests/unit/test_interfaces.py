@@ -21,7 +21,8 @@ def test_collection_provider_cannot_instantiate():
     """Test that CollectionProvider cannot be instantiated directly."""
     with pytest.raises(TypeError) as exc_info:
         CollectionProvider()
-    assert "abstract methods collection_exists, list_collections" in str(exc_info.value)
+    assert "collection_exists" in str(exc_info.value)
+    assert "list_collections" in str(exc_info.value)
 
 
 def test_collection_provider_requires_methods():
@@ -32,7 +33,8 @@ def test_collection_provider_requires_methods():
 
     with pytest.raises(TypeError) as exc_info:
         IncompleteProvider()
-    assert "abstract methods collection_exists, list_collections" in str(exc_info.value)
+    assert "collection_exists" in str(exc_info.value)
+    assert "list_collections" in str(exc_info.value)
 
 
 @pytest.mark.asyncio
@@ -87,10 +89,7 @@ def test_vector_search_provider_requires_all_methods():
 
     with pytest.raises(TypeError) as exc_info:
         IncompleteProvider()
-    assert (
-        "Can't instantiate abstract class IncompleteProvider with abstract method get_vector"
-        == str(exc_info.value)
-    )
+    assert "get_vector" in str(exc_info.value)
 
 
 def test_vector_search_provider_implementation():

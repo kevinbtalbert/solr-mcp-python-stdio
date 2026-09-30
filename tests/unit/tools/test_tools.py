@@ -67,6 +67,7 @@ class TestSearchTool:
         _context.set_solr_client(mock_solr_client)
 
         mock_results = MagicMock()
+
         async def run_sync(fn):
             return fn()
 
