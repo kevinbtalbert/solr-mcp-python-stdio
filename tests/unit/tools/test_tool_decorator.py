@@ -57,13 +57,26 @@ def test_get_schema_validation():
 def test_get_schema_no_params():
     """Test schema generation for function with no parameters."""
 
-    @tool()
+    @tool(name="list-collections")
     async def no_params_tool():
         """Tool with no parameters."""
         pass
 
-    with pytest.raises(ValueError, match="must have at least one parameter"):
-        get_schema(no_params_tool)
+    schema = get_schema(no_params_tool)
+    assert schema["name"] == "list-collections"
+    assert schema["inputSchema"]["properties"] == {}
+    assert schema["inputSchema"]["required"] == []
+
+
+def test_tool_explicit_name():
+    """Test explicit MCP tool name."""
+
+    @tool(name="search")
+    async def search_tool(collection: str):
+        """Search."""
+        pass
+
+    assert search_tool._tool_name == "search"
 
 
 def test_get_schema_basic_types():

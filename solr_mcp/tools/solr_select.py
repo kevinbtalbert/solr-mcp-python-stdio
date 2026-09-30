@@ -2,14 +2,16 @@
 
 from typing import Dict
 
+from solr_mcp.tools._context import get_solr_client
 from solr_mcp.tools.tool_decorator import tool
 
 
-@tool()
-async def execute_select_query(mcp, query: str) -> Dict:
-    """Execute SQL queries against Solr collections.
+@tool(name="sql-select")
+async def execute_select_query(query: str) -> Dict:
+    """Execute SQL SELECT queries against Solr (advanced).
 
-    Executes SQL queries against Solr collections with the following Solr-specific behaviors:
+    Prefer the ``search`` tool for Lucene/full-text queries. Use this when you
+    need Solr's SQL interface explicitly.
 
     Collection/Field Rules:
     - Collections are used as table names (case-insensitive)
@@ -35,12 +37,8 @@ async def execute_select_query(mcp, query: str) -> Dict:
     - LIMIT/OFFSET: Use 'OFFSET x FETCH NEXT y ROWS ONLY' syntax
       - Performance of OFFSET degrades beyond 10k docs per shard
 
-    Args:
-        mcp: SolrMCPServer instance
-        query: SQL query to execute
-
-    Returns:
-        Query results
+    Parameters:
+    - query: SQL query to execute
     """
-    solr_client = mcp.solr_client
-    return await solr_client.execute_select_query(query)
+    client = get_solr_client()
+    return await client.execute_select_query(query)

@@ -6,6 +6,7 @@ from typing import (
     Dict,
     List,
     Literal,
+    Optional,
     TypedDict,
     TypeVar,
     Union,
@@ -15,52 +16,33 @@ from typing import (
 
 F = TypeVar("F", bound=Callable[..., Any])
 
+_SKIP_SCHEMA_PARAMS = frozenset({"mcp"})
 
-def tool() -> Callable:
+
+def tool(name: Optional[str] = None) -> Callable[[F], F]:
     """Decorator to mark a function as an MCP tool.
 
-    This decorator adds metadata to the function to identify it as an MCP tool.
-    The tool name is derived from the function name, with 'execute_' prefix removed
-    and converted to the format 'solr_<n>'.
-
-    Returns:
-        Decorated function
+    Optional ``name`` sets the MCP tool id (e.g. ``list-collections``). When
+    omitted, legacy ``execute_*`` names map to ``solr_*`` for backward compatibility.
     """
 
     def decorator(func: Callable) -> Callable:
-        """Decorate a function as an MCP tool.
-
-        Args:
-            func: Function to decorate
-
-        Returns:
-            Decorated function
-        """
-
         @functools.wraps(func)
         async def wrapper(*args, **kwargs) -> Any:
-            """Wrap function call."""
-            try:
-                return await func(*args, **kwargs)
-            except Exception as e:
-                # Re-raise the exception to be handled by the caller
-                raise
+            return await func(*args, **kwargs)
 
-        # Set tool metadata
         wrapper._is_tool = True
 
-        # Convert execute_list_collections -> solr_list_collections
-        # Convert execute_select_query -> solr_select
-        # Convert execute_vector_select_query -> solr_vector_select
-        # Convert execute_semantic_select_query -> solr_semantic_select
-        name = func.__name__
-        if name.startswith("execute_"):
-            name = name[8:]  # Remove 'execute_'
-            if name.endswith("_query"):
-                name = name[:-6]  # Remove '_query'
-            name = f"solr_{name}"
-
-        wrapper._tool_name = name
+        if name:
+            wrapper._tool_name = name
+        else:
+            derived = func.__name__
+            if derived.startswith("execute_"):
+                derived = derived[8:]
+                if derived.endswith("_query"):
+                    derived = derived[:-6]
+                derived = f"solr_{derived}"
+            wrapper._tool_name = derived
 
         return wrapper
 
@@ -74,39 +56,33 @@ class ToolSchema(TypedDict):
 
 
 def get_schema(func: Callable) -> ToolSchema:
-    """
-    도구 함수에서 스키마 정보를 추출합니다.
-    """
+    """Extract MCP tool schema from a decorated function."""
     if not hasattr(func, "_is_tool"):
         raise ValueError(f"Function {func.__name__} is not a tool")
 
-    # 함수 독스트링에서 설명 가져오기 - Args나 Return 부분 제외
     doc = inspect.getdoc(func) or ""
     description_lines = []
 
     for line in doc.split("\n"):
         line = line.strip()
         if line.lower().startswith(
-            ("args:", "returns:", "return:", "examples:", "example:")
+            ("args:", "returns:", "return:", "examples:", "example:", "parameters:")
         ):
             break
         description_lines.append(line)
 
     description = "\n".join(description_lines).strip()
 
-    # Set tool name by removing 'execute_' prefix and adding 'solr_' prefix
     sig = inspect.signature(func)
-    params = sig.parameters
-
-    if not params:
-        raise ValueError(
-            f"Tool function {func.__name__} must have at least one parameter"
-        )
+    params = {
+        k: v
+        for k, v in sig.parameters.items()
+        if k not in _SKIP_SCHEMA_PARAMS
+    }
 
     properties = {}
     required = []
 
-    # 기본 타입 매핑
     type_map = {
         str: {"type": "string"},
         int: {"type": "integer"},
@@ -146,20 +122,18 @@ def get_schema(func: Callable) -> ToolSchema:
             else:
                 param_schema = {"type": "string"}
         elif origin is Literal:
-            # Literal 타입 처리: 가능한 값들을 enum으로 변환
             literal_args = args
             param_schema = {"type": "string", "enum": list(literal_args)}
         else:
             param_schema = type_map.get(param_type, {"type": "string"})
 
-        # docstring에서 Args 섹션 파싱
         param_description_lines = []
         in_args_section = False
         capturing_description = False
 
         for line in doc.split("\n"):
             line = line.strip()
-            if line.lower().startswith("args:"):
+            if line.lower().startswith(("args:", "parameters:")):
                 in_args_section = True
                 continue
             if (
@@ -201,8 +175,10 @@ def get_schema(func: Callable) -> ToolSchema:
             if param_name in required:
                 required.remove(param_name)
 
+    tool_name = getattr(func, "_tool_name", func.__name__)
+
     schema = {
-        "name": func.__name__,
+        "name": tool_name,
         "description": description,
         "inputSchema": {
             "type": "object",

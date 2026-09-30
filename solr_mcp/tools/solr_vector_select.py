@@ -2,41 +2,23 @@
 
 from typing import Dict, List, Optional
 
+from solr_mcp.tools._context import get_solr_client
 from solr_mcp.tools.tool_decorator import tool
 
 
-@tool()
+@tool(name="vector-select")
 async def execute_vector_select_query(
-    mcp, query: str, vector: List[float], field: Optional[str] = None
+    query: str, vector: List[float], field: Optional[str] = None
 ) -> Dict:
-    """Execute vector search queries against Solr collections.
+    """Vector similarity search combined with SQL filtering (advanced).
 
-    Extends solr_select tool with vector search capabilities.
+    Extends sql-select with a query vector matched against a dense_vector/knn_vector
+    field. ORDER BY is not allowed in ``query``.
 
-    Additional Parameters:
-    - vector: Used to match against the collection's vector field, intended for vector search.
-    - field: Name of the vector field to search against (optional, will auto-detect if not specified)
-
-    The query results will be ranked based on distance to the provided vector. Therefore, ORDER BY is not allowed.
-
-    Collection/Field Rules:
-    - Vector field must be a dense_vector or knn_vector field type
-    - The specified field must exist in the collection schema
-    - The input vector dimensionality must match the field's vector dimensionality
-
-    Supported Features:
-    - All standard SELECT query features except ORDER BY
-      - Results are ordered by vector distance
-    - Hybrid search combining keyword (SQL WHERE clauses) and vector distance (vector parameter)
-
-    Args:
-        mcp: SolrMCPServer instance
-        query: SQL query to execute
-        vector: Query vector for similarity search
-        field: Name of the vector field to search against (optional, auto-detected if not specified)
-
-    Returns:
-        Query results
+    Parameters:
+    - query: SQL query to execute
+    - vector: Query vector (dimensions must match the vector field)
+    - field: Vector field name (optional; auto-detected when omitted)
     """
-    solr_client = mcp.solr_client
-    return await solr_client.execute_vector_select_query(query, vector, field)
+    client = get_solr_client()
+    return await client.execute_vector_select_query(query, vector, field)

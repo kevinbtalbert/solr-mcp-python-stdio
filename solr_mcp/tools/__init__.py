@@ -4,16 +4,18 @@ import inspect
 import sys
 
 from .solr_default_vectorizer import get_default_text_vectorizer
-from .solr_list_collections import execute_list_collections
-from .solr_list_fields import execute_list_fields
+from .solr_get_schema import get_collection_schema
+from .solr_list_collections import list_collections
+from .solr_search import search
 from .solr_select import execute_select_query
 from .solr_semantic_select import execute_semantic_select_query
 from .solr_vector_select import execute_vector_select_query
 from .tool_decorator import get_schema, tool
 
 __all__ = [
-    "execute_list_collections",
-    "execute_list_fields",
+    "list_collections",
+    "search",
+    "get_collection_schema",
     "execute_select_query",
     "execute_vector_select_query",
     "execute_semantic_select_query",

@@ -76,11 +76,11 @@ class SolrMCPServer:
 
         self.mcp = FastMCP(
             name="Solr MCP Server",
-            instructions="""This server provides tools for interacting with SolrCloud:
-- List collections
-- Execute SQL queries
-- Execute semantic search queries
-- Execute vector search queries""",
+            instructions="""This server provides tools for interacting with Solr:
+- list-collections: discover collections
+- get-schema: field names and types for a collection
+- search: Lucene /select queries (preferred for Q&A)
+- sql-select, semantic-select, vector-select: Solr SQL (advanced)""",
             debug=True,
             port=self.port,
         )
@@ -107,16 +107,20 @@ class SolrMCPServer:
             return await tool(*args, **kwargs)
 
         wrapper._is_tool = True
-        wrapper._tool_name = tool.__name__
+        wrapper._tool_name = getattr(tool, "_tool_name", tool.__name__)
         wrapper._tool_description = tool.__doc__ if tool.__doc__ else ""
 
         return wrapper
 
     def _setup_tools(self):
         """Register MCP tools."""
-        for tool in TOOLS_DEFINITION:
-            wrapped_tool = self._wrap_tool(tool)
-            self.mcp.tool()(wrapped_tool)
+        for tool_func in TOOLS_DEFINITION:
+            wrapped_tool = self._wrap_tool(tool_func)
+            tool_name = getattr(wrapped_tool, "_tool_name", None)
+            if tool_name:
+                self.mcp.tool(name=tool_name)(wrapped_tool)
+            else:
+                self.mcp.tool()(wrapped_tool)
 
     def run(self) -> None:
         """Run the SolrMCP server."""
