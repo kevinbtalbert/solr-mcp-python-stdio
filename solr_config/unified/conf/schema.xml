@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<schema name="unified" version="1.6">
+
+  <!-- Field Types -->
+  <fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
+  <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true" omitNorms="true"/>
+  <fieldType name="int" class="solr.IntPointField" omitNorms="true" positionIncrementGap="0"/>
+  <fieldType name="float" class="solr.FloatPointField" omitNorms="true" positionIncrementGap="0"/>
+  <fieldType name="long" class="solr.LongPointField" omitNorms="true" positionIncrementGap="0"/>
+  <fieldType name="double" class="solr.DoublePointField" omitNorms="true" positionIncrementGap="0"/>
+  <fieldType name="date" class="solr.DatePointField" omitNorms="true" positionIncrementGap="0"/>
+  
+  <!-- Improved text field with stemming and better tokenization -->
+  <fieldType name="text_general" class="solr.TextField" positionIncrementGap="100">
+    <analyzer type="index">
+      <tokenizer class="solr.StandardTokenizerFactory"/>
+      <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
+      <filter class="solr.WordDelimiterGraphFilterFactory" 
+              generateWordParts="1" 
+              generateNumberParts="1" 
+              catenateWords="1" 
+              catenateNumbers="1" 
+              catenateAll="0" 
+              splitOnCaseChange="1"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+      <filter class="solr.EnglishMinimalStemFilterFactory"/>
+      <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
+    </analyzer>
+    <analyzer type="query">
+      <tokenizer class="solr.StandardTokenizerFactory"/>
+      <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt"/>
+      <filter class="solr.WordDelimiterGraphFilterFactory" 
+              generateWordParts="1" 
+              generateNumberParts="1" 
+              catenateWords="0" 
+              catenateNumbers="0" 
+              catenateAll="0" 
+              splitOnCaseChange="1"/>
+      <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+      <filter class="solr.EnglishMinimalStemFilterFactory"/>
+      <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
+    </analyzer>
+  </fieldType>
+  
+  <!-- Vector field type for embeddings -->
+  <fieldType name="knn_vector" class="solr.DenseVectorField" 
+             vectorDimension="768" similarityFunction="cosine">
+    <vectorEncoding>FLOAT32</vectorEncoding>  
+  </fieldType>
+  
+  <!-- Fields for document -->
+  <!-- Unique identifier for each document -->
+  <field name="id" type="string" indexed="true" stored="true" required="true" multiValued="false"/>
+  
+  <!-- Text fields - for full text search, use _text_ field which includes content from all these fields -->
+  <field name="title" type="text_general" indexed="true" stored="true"/>
+  <field name="content" type="text_general" indexed="true" stored="true"/>
+  <field name="text" type="text_general" indexed="true" stored="true"/>
+  
+  <!-- Metadata fields - good for faceting and filtering -->
+  <field name="section" type="string" indexed="true" stored="true"/>
+  <field name="section_number" type="int" indexed="true" stored="true"/>
+  <field name="source" type="string" indexed="true" stored="true"/>
+  <field name="url" type="string" indexed="true" stored="true"/>
+  <field name="published_date" type="date" indexed="true" stored="true"/>
+  <field name="author" type="string" indexed="true" stored="true" multiValued="true"/>
+  <field name="tags" type="string" indexed="true" stored="true" multiValued="true"/>
+  
+  <!-- Vector embedding field for similarity search -->
+  <field name="embedding" type="knn_vector" indexed="true" stored="false"/>
+  
+  <!-- Dynamic field patterns -->
+  <dynamicField name="*_i" type="int" indexed="true" stored="true"/>
+  <dynamicField name="*_s" type="string" indexed="true" stored="true"/>
+  <dynamicField name="*_l" type="long" indexed="true" stored="true"/>
+  <dynamicField name="*_t" type="text_general" indexed="true" stored="true"/>
+  <dynamicField name="*_b" type="boolean" indexed="true" stored="true"/>
+  <dynamicField name="*_f" type="float" indexed="true" stored="true"/>
+  <dynamicField name="*_d" type="double" indexed="true" stored="true"/>
+  <dynamicField name="*_dt" type="date" indexed="true" stored="true"/>
+  <dynamicField name="*_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+  <dynamicField name="*_vector" type="knn_vector" indexed="true" stored="true"/>
+  
+  <!-- Required fields -->
+  <uniqueKey>id</uniqueKey>
+  
+  <!-- Special fields -->
+  <!-- _text_ is the main field for full text search - it combines content from all text fields -->
+  <!-- Use this field for general text search queries like: WHERE _text_:'your search terms' -->
+  <field name="_text_" type="text_general" indexed="true" stored="false" multiValued="true"/>
+  <field name="_version_" type="long" indexed="true" stored="true"/>
+  
+  <!-- Copy all text fields into _text_ for unified full-text search -->
+  <!-- This is why you should use _text_ for searching instead of individual fields -->
+  <copyField source="title" dest="_text_"/>
+  <copyField source="content" dest="_text_"/>
+  <copyField source="text" dest="_text_"/>
+  <copyField source="section" dest="_text_"/>
+  <copyField source="source" dest="_text_"/>
+  <copyField source="author" dest="_text_"/>
+  <copyField source="tags" dest="_text_"/>
+  <copyField source="*_t" dest="_text_"/>
+  <copyField source="*_s" dest="_text_"/>
+
+</schema>

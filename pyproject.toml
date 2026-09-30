@@ -1,0 +1,85 @@
+[project]
+name = "solr-mcp-server"
+version = "0.1.0"
+description = "Model Context Protocol server for Apache SolrCloud search"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "aiohttp>=3.10.0",
+    "fastapi>=0.109.2",
+    "httpx>=0.27.0",
+    "kazoo>=2.10.0",
+    "loguru>=0.7.3",
+    "markdown>=3.5.2",
+    "mcp[cli]>=1.4.1,<2",
+    "numpy>=1.26.3",
+    "pydantic>=2.6.1",
+    "pysolr>=3.9.0",
+    "python-dotenv>=1.1.0",
+    "python-frontmatter>=1.1.0",
+    "sqlglot>=26.11.1",
+    "uvicorn>=0.27.1",
+]
+
+[dependency-groups]
+dev = [
+    "black>=24.2.0",
+    "flake8>=7.0.0",
+    "isort>=5.13.2",
+    "mypy>=1.8.0",
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.25.3",
+    "pytest-cov>=6.0.0",
+    "pytest-mock>=3.14.0",
+]
+
+[project.scripts]
+run-server = "solr_mcp.server:main"
+solr-mcp = "solr_mcp.server:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "solr_mcp/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["solr_mcp"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "strict"
+asyncio_default_fixture_loop_scope = "function"
+markers = [
+    "integration: marks tests that require external services (deselect with '-m \"not integration\"')",
+]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+
+[tool.black]
+line-length = 88
+target-version = ['py310']
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+line_length = 88
+multi_line_output = 3
